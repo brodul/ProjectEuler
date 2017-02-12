@@ -1,7 +1,7 @@
-import itertools
-from functools import reduce
+from functools import reduce  # Valid in Python 2.6+, required in Python 3
 import operator
 
+lenght = 13
 
 digit1000 = """\
 73167176531330624919225119674426574742355349194934\
@@ -29,31 +29,30 @@ digit1000 = """\
 assert len(digit1000) == 1000
 
 # split where the 0 is
-splitted_digit = digit1000.split("0")
+non_zero = filter(None, digit1000.split("0"))
 
-# preserve the first and last element of the split
-first = splitted_digit.pop(0)
-last = splitted_digit.pop(-1)
-# remove 12 numbers before and after the 0 and remove empty strings
-filtered_digit = filter(None, (s[11:-12] for s in splitted_digit))
+small_seqs = [s for s in non_zero if len(s) < lenght+1]
+long_seqs = [s for s in non_zero if len(s) > lenght]
 
-# add first and the last
-filtered_digit.append(first)
-filtered_digit.append(last)
-
-filtered_digit = [elem for elem in filtered_digit if len(elem) > 12]
-
-print filtered_digit
-
-results = []
-
-for s in filtered_digit:
-    for i in xrange(len(s) - 13):
-        results.append(reduce(operator.mul, (int(num) for num in itertools.islice(s, i, 13 + i)), 1))
+assert len(non_zero) == (len(small_seqs + long_seqs))
 
 
-print max(results)
+sub_long_seqs = []
+# sub seq generation
+for seq in long_seqs:
+    shift_max_index = len(seq) - lenght
+    for shift_index in range(shift_max_index+1):
+        sub_seq = seq[shift_index:lenght+shift_index]
+        sub_long_seqs.append(sub_seq)
 
-#for i in xrange(1000):
-    #print reduce(operator.mul, (int(num) for num in itertools.islice(digit1000, i, 13 + i)), 1)
-    #pass
+result = ("", 0)
+for seq in small_seqs + sub_long_seqs:
+    nums = [int(num) for num in seq]
+    mult_ = reduce(operator.mul, nums, 1)
+    print seq, mult_
+    if mult_ > result[1]:
+        result = (seq, mult_)
+
+print
+print
+print result
